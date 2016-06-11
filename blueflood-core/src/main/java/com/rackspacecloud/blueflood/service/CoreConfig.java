@@ -152,6 +152,7 @@ public enum CoreConfig implements ConfigDefaults {
     LONG_DELAY_METRICS_ROLLUP_WAIT_MILLIS("300000"),
     STRING_METRICS_DROPPED("false"),
     TENANTIDS_TO_KEEP(""),
+    ENABLE_LOCATOR_CACHING("true"),
     TRACKER_DELAYED_METRICS_MILLIS("300000"),
 
     USE_ES_FOR_UNITS("false"),

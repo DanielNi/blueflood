@@ -25,6 +25,8 @@ import com.rackspacecloud.blueflood.cache.SafetyTtlProvider;
 import com.rackspacecloud.blueflood.cache.TenantTtlProvider;
 import com.rackspacecloud.blueflood.exceptions.CacheException;
 import com.rackspacecloud.blueflood.rollup.Granularity;
+import com.rackspacecloud.blueflood.service.Configuration;
+import com.rackspacecloud.blueflood.service.CoreConfig;
 import com.rackspacecloud.blueflood.types.*;
 import com.rackspacecloud.blueflood.utils.Util;
 import org.slf4j.Logger;
@@ -44,6 +46,7 @@ public abstract class AbstractMetricsRW implements MetricsRW {
 
     protected static final MetadataCache metadataCache = MetadataCache.getInstance();
     protected static final String DATA_TYPE_CACHE_KEY = MetricMetadata.TYPE.toString().toLowerCase();
+    private static final boolean shouldCacheLocators = Configuration.getInstance().getBooleanProperty(CoreConfig.ENABLE_LOCATOR_CACHING);
 
     protected static TenantTtlProvider TTL_PROVIDER = SafetyTtlProvider.getInstance();
 
@@ -62,7 +65,7 @@ public abstract class AbstractMetricsRW implements MetricsRW {
      * @return
      */
     protected synchronized boolean isLocatorCurrent(Locator loc) {
-        return insertedLocators.getIfPresent(loc.toString()) != null;
+        return shouldCacheLocators ? insertedLocators.getIfPresent(loc.toString()) != null : false;
     }
 
     /**
@@ -70,7 +73,9 @@ public abstract class AbstractMetricsRW implements MetricsRW {
      * @param loc
      */
     protected synchronized void setLocatorCurrent(Locator loc) {
-        insertedLocators.put(loc.toString(), Boolean.TRUE);
+        if (shouldCacheLocators) {
+            insertedLocators.put(loc.toString(), Boolean.TRUE);
+        }
     }
 
     /**

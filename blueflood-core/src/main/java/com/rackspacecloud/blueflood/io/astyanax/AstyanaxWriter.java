@@ -55,6 +55,7 @@ public class AstyanaxWriter extends AstyanaxIO {
     private static final TimeValue STRING_TTL = new TimeValue(730, TimeUnit.DAYS); // 2 years
     private boolean areStringMetricsDropped = Configuration.getInstance().getBooleanProperty(CoreConfig.STRING_METRICS_DROPPED);
     private List<String> tenantIdsKept = Configuration.getInstance().getListProperty(CoreConfig.TENANTIDS_TO_KEEP);
+    private static final boolean shouldCacheLocators = Configuration.getInstance().getBooleanProperty(CoreConfig.ENABLE_LOCATOR_CACHING);
     private Set<String> keptTenantIdsSet = new HashSet<String>(tenantIdsKept);
 
     public static AstyanaxWriter getInstance() {
@@ -302,11 +303,13 @@ public class AstyanaxWriter extends AstyanaxIO {
     }
 
     public static boolean isLocatorCurrent(Locator loc) {
-        return insertedLocators.getIfPresent(loc.toString()) != null;
+        return shouldCacheLocators ? insertedLocators.getIfPresent(loc.toString()) != null : false;
     }
 
     private static void setLocatorCurrent(Locator loc) {
-        insertedLocators.put(loc.toString(), Boolean.TRUE);
+        if (shouldCacheLocators) {
+            insertedLocators.put(loc.toString(), Boolean.TRUE);
+        }
     }
 
     public void insertRollups(List<SingleRollupWriteContext> writeContexts) throws ConnectionException {
