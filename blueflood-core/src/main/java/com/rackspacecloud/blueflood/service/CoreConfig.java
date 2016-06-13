@@ -134,7 +134,8 @@ public enum CoreConfig implements ConfigDefaults {
     GET_BY_POINTS_ASSUME_INTERVAL("30000"),
 
     // Rollups repair on read
-    REPAIR_ROLLUPS_ON_READ("true"),
+    REPAIR_ROLLUPS_ON_READ_FROM("true"),
+    REPAIR_ROLLUPS_ON_READ_TO("true"),
 
     // valid options are: GEOMETRIC, LINEAR, and LESSTHANEQUAL
     GET_BY_POINTS_GRANULARITY_SELECTION("GEOMETRIC"),

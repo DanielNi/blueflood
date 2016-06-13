@@ -69,7 +69,8 @@ public class RollupHandler {
     private static final Timer timerRepairRollupsOnRead = Metrics.timer( RollupHandler.class, "repairRollupsOnRead" );
     private static final Timer timerRorCalcUnits = Metrics.timer( RollupHandler.class, "ROR Calc Units" );
 
-    private static final boolean ROLLUP_REPAIR = Configuration.getInstance().getBooleanProperty(CoreConfig.REPAIR_ROLLUPS_ON_READ);
+    private static final boolean ROLLUP_REPAIR_FROM = Configuration.getInstance().getBooleanProperty(CoreConfig.REPAIR_ROLLUPS_ON_READ_FROM);
+    private static final boolean ROLLUP_REPAIR_TO = Configuration.getInstance().getBooleanProperty(CoreConfig.REPAIR_ROLLUPS_ON_READ_TO);
     private static final int ROLLUP_ON_READ_REPAIR_SIZE_PER_THREAD = Configuration.getInstance().getIntegerProperty( CoreConfig.ROLLUP_ON_READ_REPAIR_SIZE_PER_THREAD );
     private ExecutorService ESUnitExecutor = null;
     private ListeningExecutorService rollupsOnReadExecutor = null;
@@ -250,7 +251,7 @@ public class RollupHandler {
         Boolean retValue = false;
 
         // if Granularity is FULL, we are missing raw data - can't generate that
-        if (ROLLUP_REPAIR && isRollable && g != Granularity.FULL && metricData != null) {
+        if ((ROLLUP_REPAIR_FROM || ROLLUP_REPAIR_TO) && isRollable && g != Granularity.FULL && metricData != null) {
             if (metricData.getData().isEmpty()) { // data completely missing for range. complete repair.
                 rollupsRepairEntireRange.mark();
                 List<Points.Point> repairedPoints = repairRollupsOnRead(locator, g, from, to);
@@ -266,7 +267,7 @@ public class RollupHandler {
                 long actualEnd = maxTime(metricData.getData());
 
                 // If the returned start is greater than 'from', we are missing a portion of data.
-                if (actualStart > from) {
+                if (ROLLUP_REPAIR_FROM && actualStart > from) {
                     rollupsRepairedLeft.mark();
                     List<Points.Point> repairedLeft = repairRollupsOnRead(locator, g, from, actualStart);
                     for (Points.Point repairedPoint : repairedLeft) {
@@ -279,7 +280,7 @@ public class RollupHandler {
                 }
 
                 // If the returned end timestamp is less than 'to', we are missing a portion of data.
-                if (actualEnd + g.milliseconds() <= to) {
+                if (ROLLUP_REPAIR_TO && actualEnd + g.milliseconds() <= to) {
                     rollupsRepairedRight.mark();
                     List<Points.Point> repairedRight = repairRollupsOnRead(locator, g, actualEnd + g.milliseconds(), to);
                     for (Points.Point repairedPoint : repairedRight) {
